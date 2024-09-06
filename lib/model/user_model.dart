@@ -1,27 +1,26 @@
-
 import 'package:chatappwithflutter/model/chat_model.dart';
 
-class User {
+class UserModel {
   final String userId;
   final String nameSurname;
   final String email;
   final String profileImageUrl;
-  final String status; // Kullanıcının online durumu
+  final String status;
   final List<ChatModel>? lastMessageModel;
 
-  // Constructor
-  User({
+  
+  UserModel({
     this.userId = "",
     this.nameSurname = "",
     this.email = "",
     this.profileImageUrl = "",
-    this.status = "offline",
+    this.status = "",
     this.lastMessageModel,
   });
 
-  // JSON'dan User nesnesi oluşturmak için
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
+  
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
       userId: json['userId'] ?? "",
       nameSurname: json['nameSurname'] ?? "",
       email: json['email'] ?? "",
@@ -33,7 +32,7 @@ class User {
     );
   }
 
-  // User nesnesini JSON'a dönüştürmek için
+  
   Map<String, dynamic> toJson() {
     return {
       'userId': userId,

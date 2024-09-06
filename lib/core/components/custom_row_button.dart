@@ -20,7 +20,7 @@ class _CustomSegmentedButtonState extends State<CustomSegmentedButton> {
   @override
   void initState() {
     super.initState();
-    // Başlangıçta ilk elemanı seçili yap
+    
     _selectedValue = widget.items.isNotEmpty ? widget.items[0] : '';
   }
 
@@ -38,6 +38,13 @@ class _CustomSegmentedButtonState extends State<CustomSegmentedButton> {
             }
           });
         },
+        color: Colors.blue, 
+        selectedColor: Colors.white, 
+        borderColor: Colors.transparent, 
+        selectedBorderColor: Colors.transparent, 
+        borderRadius: BorderRadius.circular(8), 
+        fillColor: Colors.blue, 
+        splashColor: Colors.blueAccent,
         children: widget.items
             .map((item) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -46,14 +53,7 @@ class _CustomSegmentedButtonState extends State<CustomSegmentedButton> {
                     style: const TextStyle(color: Colors.black),
                   ),
                 ))
-            .toList(),
-        color: Colors.blue, // Düğme metin rengi
-        selectedColor: Colors.white, // Seçili düğme metin rengi
-        borderColor: Colors.transparent, // Düğme kenarlık rengi
-        selectedBorderColor: Colors.transparent, // Seçili düğme kenarlık rengi
-        borderRadius: BorderRadius.circular(8), // Kenar yuvarlama
-        fillColor: Colors.blue, // Düğme arka plan rengi
-        splashColor: Colors.blueAccent, // Tıklama efekt rengi
+            .toList(), 
       ),
     );
   }

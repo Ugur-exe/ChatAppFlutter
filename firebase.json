@@ -1,1 +1,22 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"chatappktolin","appId":"1:404178095667:android:eb745af10b88cbc88edd46","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"chatappktolin","configurations":{"android":"1:404178095667:android:eb745af10b88cbc88edd46","ios":"1:404178095667:ios:da6b9aa172a825f18edd46"}}}}}}
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "chatappktolin",
+                    "appId": "1:404178095667:android:eb745af10b88cbc88edd46",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "chatappktolin",
+                    "configurations": {
+                        "android": "1:404178095667:android:eb745af10b88cbc88edd46",
+                        "ios": "1:404178095667:ios:da6b9aa172a825f18edd46"
+                    }
+                }
+            }
+        }
+    }
+}

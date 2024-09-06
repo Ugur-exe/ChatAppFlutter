@@ -1,12 +1,12 @@
 class ChatModel {
-  final String chatId; // Benzersiz chat ID'si
+  final String chatId; 
   final String receiverId;
-  final String senderId; // Sohbete katılan kullanıcı ID'leri
-  final String lastMessage; // Son mesajın metni
-  final String lastMessageTimestamp; // Son mesajın gönderim zamanı
-  final bool isGroupChat; // Grup sohbeti olup olmadığı bilgisi
+  final String senderId; 
+  final String lastMessage; 
+  final String lastMessageTimestamp; 
+  final bool isGroupChat; 
 
-  // Constructor
+  
   ChatModel({
     this.chatId = "",
     this.receiverId = "",
@@ -16,7 +16,7 @@ class ChatModel {
     this.isGroupChat = false,
   });
 
-  // JSON'dan ChatModel nesnesi oluşturmak için
+  
   factory ChatModel.fromJson(Map<String, dynamic> json) {
     return ChatModel(
       chatId: json['chatId'] ?? "",
@@ -28,7 +28,7 @@ class ChatModel {
     );
   }
 
-  // ChatModel nesnesini JSON'a dönüştürmek için
+  
   Map<String, dynamic> toJson() {
     return {
       'chatId': chatId,

@@ -28,8 +28,8 @@ class _RegisterViewState extends State<RegisterView> {
       children: [
         const SizedBox(height: 10),
         Align(
-          child: _backButton(),
           alignment: Alignment.topLeft,
+          child: _backButton(),
         ),
         _imageWidget(),
         const SizedBox(height: 50),
@@ -56,7 +56,7 @@ class _RegisterViewState extends State<RegisterView> {
       onPressed: () {
         Navigator.pop(context);
       },
-      icon: Icon(
+      icon: const Icon(
         size: 25,
         color: Colors.black,
         Icons.arrow_back_ios_sharp,

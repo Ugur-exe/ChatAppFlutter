@@ -1,4 +1,4 @@
-import 'dart:ffi';
+
 
 class ChatMessageModel {
   final int messageId;
@@ -18,7 +18,7 @@ class ChatMessageModel {
       required this.timestamp,
       required this.isSeen});
 
-  /// JSON'dan ChatMessageModel nesnesi oluşturmak için
+  
   factory ChatMessageModel.fromJson(Map<String, dynamic> json) {
     return ChatMessageModel(
         messageId: json["messageId"],
@@ -30,7 +30,7 @@ class ChatMessageModel {
         isSeen: json["isSeen"]);
   }
 
-  /// ChatMessageModel nesnesini JSON'a dönüştürmek için
+  
   Map<String, dynamic> toJson() {
     return {
       'messageId': messageId,

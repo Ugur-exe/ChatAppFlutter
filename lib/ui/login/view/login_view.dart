@@ -1,18 +1,41 @@
-import 'package:chatappwithflutter/core/router.dart';
+import 'package:chatappwithflutter/core/util/router.dart';
 import 'package:chatappwithflutter/core/util/appColor.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:chatappwithflutter/ui/login/cubit/login_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class LoginView extends StatelessWidget {
   LoginView({super.key});
-  TextEditingController email = TextEditingController();
-  TextEditingController password = TextEditingController();
+  final TextEditingController email = TextEditingController();
+  final TextEditingController password = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.loginBackgroundColor,
-      body: SingleChildScrollView(
-        child: _bodyWidget(context),
+      body: BlocListener<LoginCubit, LoginState>(
+        // BlocListener kullanarak durumları dinliyoruz
+        listener: (context, state) {
+          if (state is AuthAuthenticated) {
+            // Başarıyla giriş yapıldığında
+            Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AppRouter().getPage('/mainView'),
+                )); // Ana sayfaya yönlendir
+          } else if (state is AuthError) {
+            // Hata durumunda
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        },
+        child: SingleChildScrollView(
+          child: _bodyWidget(context),
+        ),
       ),
     );
   }
@@ -66,14 +89,14 @@ class LoginView extends StatelessWidget {
 
   Widget _textfieldWidget(TextEditingController controlller) {
     return Padding(
-      padding: EdgeInsets.all(10.0),
+      padding: const EdgeInsets.all(10.0),
       child: TextField(
         controller: controlller,
-        style: TextStyle(
+        style: const TextStyle(
             color: AppColors.textColor,
             fontWeight: FontWeight.bold,
             fontSize: 20),
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           filled: true, // İç rengini etkinleştirmek için
           fillColor: AppColors.inputColor, // İç dolgu rengi
           border: OutlineInputBorder(
@@ -125,21 +148,7 @@ class LoginView extends StatelessWidget {
         width: double.infinity,
         child: ElevatedButton(
           onPressed: () async {
-            try {
-              await FirebaseAuth.instance.signInWithEmailAndPassword(
-                  email: email.text, password: password.text);
-              Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AppRouter().getPage('/mainView'),
-                  ));
-            } on FirebaseAuthException catch (e) {
-              if (e.code == 'user-not-found') {
-                print('No user found for that email.');
-              } else if (e.code == 'wrong-password') {
-                print('Wrong password provided for that user.');
-              }
-            }
+            context.read<LoginCubit>().login(email.text, password.text);
           },
           child: const Text(
             "Login",

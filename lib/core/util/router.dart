@@ -1,7 +1,7 @@
-import 'package:chatappwithflutter/view/chat_view.dart';
-import 'package:chatappwithflutter/view/login_view.dart';
-import 'package:chatappwithflutter/view/main_view.dart';
-import 'package:chatappwithflutter/view/register_view.dart';
+import 'package:chatappwithflutter/ui/chat/view/chat_view.dart';
+import 'package:chatappwithflutter/ui/login/view/login_view.dart';
+import 'package:chatappwithflutter/ui/main/view/main_view.dart';
+import 'package:chatappwithflutter/ui/register/view/register_view.dart';
 import 'package:flutter/material.dart';
 import 'dart:io' show Platform;
 
@@ -9,11 +9,11 @@ class AppRouter {
   // Ana sayfayı platforma göre yönlendiriyoruz
   Widget getHomePage() {
     if (Platform.isAndroid) {
-      return  LoginView();
+      return LoginView();
     } else if (Platform.isIOS) {
       return const IosHomePage();
     } else {
-      return  LoginView();
+      return LoginView();
     }
   }
 
@@ -27,7 +27,7 @@ class AppRouter {
       case '/chatView':
         return ChatView();
       default:
-        return  LoginView();
+        return LoginView();
     }
   }
 }
