@@ -25,7 +25,7 @@ class AppRouter {
       case '/mainView':
         return const MainView();
       case '/chatView':
-        return ChatView();
+        return const ChatView();
       default:
         return LoginView();
     }

@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:chatappwithflutter/model/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meta/meta.dart';
 
 part 'main_state.dart';
@@ -11,19 +12,23 @@ class MainCubit extends Cubit<MainState> {
   }
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final String _currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
   // Firestore'dan kullanıcıları dinleme fonksiyonu
   void _listenToUsers() {
     _firestore.collection('users').snapshots().listen((snapshot) {
-      final List<UserModel> userList = snapshot.docs.map((doc) {
-        final data = doc.data();
-        return UserModel(
-          email: data['email'],
-          nameSurname: data['nameSurname'],
-          userId: data['userId'],
-          status: data['status'],
-        );
-      }).toList();
+      final List<UserModel> userList = snapshot.docs
+          .map((doc) {
+            final data = doc.data();
+            return UserModel(
+              email: data['email'],
+              nameSurname: data['nameSurname'],
+              userId: data['userId'],
+              status: data['status'],
+            );
+          })
+          .where((user) => user.userId != _currentUserId)
+          .toList(); // Filtreleme işlemi
 
       emit(MainLoaded(users: userList));
     }, onError: (e) {
@@ -48,7 +53,5 @@ class MainCubit extends Cubit<MainState> {
     }
   }
 
-  void createChatId(String receiverId, String senderId){
-    
-  }
+  
 }

@@ -1,6 +1,8 @@
 import 'package:chatappwithflutter/core/util/router.dart';
 import 'package:chatappwithflutter/firebase_options.dart';
 import 'package:chatappwithflutter/service/firebase/user_status/cubit/user_status_cubit.dart';
+import 'package:chatappwithflutter/ui/chat/cubit/cubit/chat_cubit_cubit.dart';
+import 'package:chatappwithflutter/ui/chat/view/chat_view.dart';
 import 'package:chatappwithflutter/ui/login/cubit/login_cubit.dart';
 import 'package:chatappwithflutter/ui/main/cubit/main_cubit.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -32,7 +34,6 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _userStatusCubit = UserStatusCubit();
 
-    
     _userStatusCubit.getStatusInfo('online');
   }
 
@@ -51,15 +52,12 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
-      
       print('Uygulama arka plana alındı ');
       _userStatusCubit.getStatusInfo(localTime());
     } else if (state == AppLifecycleState.resumed) {
-      
       print('Uygulama tekrar açıldı');
       _userStatusCubit.getStatusInfo('online');
     } else if (state == AppLifecycleState.detached) {
-      
       print('Uygulama tamamen kapatıldı');
       _userStatusCubit.getStatusInfo(localTime());
     }
@@ -70,14 +68,17 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => MainCubit(),
+          create: (_) => MainCubit(),
         ),
         BlocProvider(
-          create: (context) => LoginCubit(),
+          create: (_) => LoginCubit(),
         ),
         BlocProvider(
-          create: (context) => UserStatusCubit(),
-        )
+          create: (_) => ChatCubitCubit(),
+        ),
+        BlocProvider.value(
+          value: _userStatusCubit,
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -88,11 +89,9 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasData) {
-                
-                return AppRouter().getPage('/mainView'); 
+                return AppRouter().getPage('/mainView');
               } else {
-                
-                return AppRouter().getHomePage(); 
+                return AppRouter().getHomePage();
               }
             },
           ),

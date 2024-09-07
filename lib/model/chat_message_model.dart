@@ -1,12 +1,14 @@
 
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class ChatMessageModel {
   final int messageId;
   final String chatId;
   final String senderId;
   final String receiverId;
   final String messageText;
-  final String timestamp;
+  final Timestamp timestamp;
   final bool isSeen;
 
   ChatMessageModel(

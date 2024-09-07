@@ -1,5 +1,5 @@
-import 'package:chatappwithflutter/model/chat_message_model.dart';
 import 'package:chatappwithflutter/service/firebase/user_status/cubit/user_status_cubit.dart';
+import 'package:chatappwithflutter/ui/chat/cubit/cubit/chat_cubit_cubit.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,34 +22,35 @@ class ChatView extends StatefulWidget {
 }
 
 class _ChatViewState extends State<ChatView> {
-  List<ChatMessageModel> chatList = [
-    ChatMessageModel(
-        messageId: 1,
-        chatId: '123',
-        senderId: '321',
-        receiverId: '123',
-        messageText: 'Merhaba, nasılsın?',
-        timestamp: '3.45 PM',
-        isSeen: true),
-    ChatMessageModel(
-        messageId: 2,
-        chatId: '123',
-        senderId: '123',
-        receiverId: '321',
-        messageText: 'İyiyim, teşekkür ederim!',
-        timestamp: '3.46 PM',
-        isSeen: true),
-  ];
+  final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  bool _showScrollToBottomButton = false;
 
-  String currentUserId = '321';
+  @override
+  void initState() {
+    super.initState();
+    final userStatusCubit = BlocProvider.of<ChatCubitCubit>(context);
+    if (widget.chatId != null) {
+      userStatusCubit.getMessage(widget.chatId!);
+      debugPrint(widget.chatId);
+    } else {
+      debugPrint('ChatId Hata Geldi');
+    }
+  }
 
-  TextEditingController _messageController = TextEditingController();
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final userStatusCubit = BlocProvider.of<UserStatusCubit>(context);
     userStatusCubit.readStatusInfo(widget.receiverId!);
     String _status = '';
+
     return Scaffold(
       appBar: AppBar(
         title: Center(
@@ -97,33 +98,87 @@ class _ChatViewState extends State<ChatView> {
       body: Column(
         children: [
           Expanded(
-            child: _buildChatList(),
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (notification) {
+                if (notification is ScrollEndNotification) {
+                  final maxScrollExtent =
+                      _scrollController.position.maxScrollExtent;
+                  final currentScrollPosition = _scrollController.offset;
+                  setState(() {
+                    _showScrollToBottomButton =
+                        currentScrollPosition < maxScrollExtent - 10;
+                  });
+                }
+                return true;
+              },
+              child: BlocConsumer<ChatCubitCubit, ChatCubitState>(
+                listener: (context, state) {
+                  if (state is ChatLoadedMessage) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _scrollController
+                          .jumpTo(_scrollController.position.maxScrollExtent);
+                    });
+                  }
+                },
+                builder: (context, state) {
+                  if (state is ChatCubitInitial) {
+                    return const Center(
+                        child: CircularProgressIndicator.adaptive());
+                  } else if (state is ChatLoadedMessage) {
+                    return ListView.builder(
+                      controller: _scrollController,
+                      itemCount: state.loadMessage.length,
+                      itemBuilder: (context, index) {
+                        final message = state.loadMessage[index];
+                        bool isCurrentUser = message.senderId ==
+                            FirebaseAuth.instance.currentUser!.uid;
+                        return Align(
+                          alignment: isCurrentUser
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 8),
+                            margin: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: isCurrentUser
+                                  ? Colors.blue[100]
+                                  : Colors.grey[300],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(message.messageText),
+                          ),
+                        );
+                      },
+                    );
+                  } else if (state is ChatLoadedMessageError) {
+                    return Center(
+                      child: Text('Hata Oluştu: ${state.errorMessage}'),
+                    );
+                  } else {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                },
+              ),
+            ),
           ),
+          if (_showScrollToBottomButton)
+            Align(
+              alignment: Alignment.bottomRight,
+              child: IconButton(
+                onPressed: () {
+                  _scrollController.animateTo(
+                    _scrollController.position.maxScrollExtent,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                icon: Icon(Icons.arrow_downward_outlined),
+              ),
+            ),
           _buildMessageInput(),
         ],
       ),
-    );
-  }
-
-  Widget _buildChatList() {
-    return ListView.builder(
-      itemCount: chatList.length,
-      itemBuilder: (context, index) {
-        bool isCurrentUser = chatList[index].senderId == currentUserId;
-        return Align(
-          alignment:
-              isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: isCurrentUser ? Colors.blue[100] : Colors.grey[300],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(chatList[index].messageText),
-          ),
-        );
-      },
     );
   }
 
@@ -158,8 +213,30 @@ class _ChatViewState extends State<ChatView> {
   }
 
   void _sendMessage() {
-    print("Mesaj gönderildi: ${_messageController.text}");
-
-    _messageController.clear();
+    if (_messageController.text.isNotEmpty) {
+      final senderId = FirebaseAuth.instance.currentUser?.uid;
+      if (senderId != null &&
+          widget.receiverId != null &&
+          widget.chatId != null) {
+        BlocProvider.of<ChatCubitCubit>(context)
+            .sendMessage(
+          senderId,
+          widget.receiverId!,
+          widget.chatId!,
+          _messageController.text,
+        )
+            .then((_) {
+          // Mesaj gönderildikten sonra mesaj alanını temizle
+          _messageController.clear();
+          // Mesaj gönderildikten sonra en alta kaydır
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollController
+                .jumpTo(_scrollController.position.maxScrollExtent);
+          });
+        }).catchError((error) {
+          print('Mesaj gönderilirken hata oluştu: $error');
+        });
+      }
+    }
   }
 }
