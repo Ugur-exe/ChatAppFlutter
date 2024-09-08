@@ -1,5 +1,3 @@
-
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatMessageModel {
@@ -9,7 +7,7 @@ class ChatMessageModel {
   final String receiverId;
   final String messageText;
   final Timestamp timestamp;
-  final bool isSeen;
+  final bool seen;
 
   ChatMessageModel(
       {required this.messageId,
@@ -18,9 +16,8 @@ class ChatMessageModel {
       required this.receiverId,
       required this.messageText,
       required this.timestamp,
-      required this.isSeen});
+      required this.seen});
 
-  
   factory ChatMessageModel.fromJson(Map<String, dynamic> json) {
     return ChatMessageModel(
         messageId: json["messageId"],
@@ -29,10 +26,9 @@ class ChatMessageModel {
         receiverId: json["receiverId"],
         messageText: json["messageText"],
         timestamp: json["timestamp"],
-        isSeen: json["isSeen"]);
+        seen: json["seen"]);
   }
 
-  
   Map<String, dynamic> toJson() {
     return {
       'messageId': messageId,
@@ -41,7 +37,7 @@ class ChatMessageModel {
       'receiverId': receiverId,
       'messageText': messageText,
       'timestamp': timestamp,
-      'isSeen': isSeen
+      'seen': seen
     };
   }
 }

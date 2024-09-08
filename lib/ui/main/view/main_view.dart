@@ -1,3 +1,4 @@
+import 'package:chatappwithflutter/ui/chat/cubit/cubit/chat_cubit_cubit.dart';
 import 'package:chatappwithflutter/ui/main/cubit/main_cubit.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,14 +16,6 @@ class MainView extends StatefulWidget {
 }
 
 class _MainViewState extends State<MainView> {
-  final String _currentUserId = FirebaseAuth.instance.currentUser!.uid;
-  
-  String createChatId(String receiverId) {
-    final ids = [_currentUserId, receiverId]..sort();
-    print('ChatId: ${ids[0]}_${ids[1]}');
-    return "${ids[0]}_${ids[1]}";
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -103,16 +96,17 @@ class _MainViewState extends State<MainView> {
             shadowColor: Colors.green,
             child: ListTile(
               onTap: () {
+                context
+                    .read<ChatCubitCubit>()
+                    .initializeChat(userList[index].userId);
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => ChatView(
-                      fullName: userList[index].nameSurname,
-                      receiverId: userList[index].userId,
-                      chatId: createChatId(
-                        userList[index].userId,
-                      ),
-                    ),
+                        fullName: userList[index].nameSurname,
+                        receiverId: userList[index].userId,
+                        chatId: context.read<ChatCubitCubit>().currentChatId),
                   ),
                 );
               },

@@ -13,12 +13,23 @@ class ChatCubitCubit extends Cubit<ChatCubitState> implements Chats {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String _currentUserId = FirebaseAuth.instance.currentUser!.uid;
+  late String currentChatId;
+
+  void initializeChat(String receiverId) {
+    currentChatId = createChatId(receiverId);
+    getMessage();
+  }
+  String createChatId(String receiverId) {
+    final ids = [_currentUserId, receiverId]..sort();
+    print('ChatId: ${ids[0]}_${ids[1]}');
+    return "${ids[0]}_${ids[1]}";
+  }
 
   @override
-  Future getMessage(String chatId) async {
+  Future getMessage() async {
     _firestore
         .collection('chats')
-        .doc(chatId)
+        .doc(currentChatId)
         .collection('messages')
         .orderBy('timestamp', descending: false)
         .snapshots()
@@ -28,7 +39,7 @@ class ChatCubitCubit extends Cubit<ChatCubitState> implements Chats {
           final data = doc.data();
           return ChatMessageModel(
             chatId: data['chatId'],
-            isSeen: data['isSeen'],
+            seen: data['seen'],
             messageId: data['messageId'],
             messageText: data['messageText'],
             receiverId: data['receiverId'],
@@ -55,7 +66,7 @@ class ChatCubitCubit extends Cubit<ChatCubitState> implements Chats {
         receiverId: receiverId,
         messageText: messageText,
         timestamp: Timestamp.now(),
-        isSeen: false,
+        seen: false,
       );
 
       await _firestore
@@ -68,15 +79,17 @@ class ChatCubitCubit extends Cubit<ChatCubitState> implements Chats {
         'messageText': message.messageText,
         'receiverId': message.receiverId,
         'senderId': message.senderId,
-        'isSeen': message.isSeen,
+        'seen': message.seen,
         'timestamp': message.timestamp,
       });
 
       // Mesaj gönderildikten sonra, getMessage'i çağırarak yeni mesajları almak
-      getMessage(chatId); // Burada chatId ile getMessage çağrılır
+      getMessage(); // Burada chatId ile getMessage çağrılır
     } catch (e) {
       emit(ChatSendMessageError(
           messageError: 'Mesaj gönderilirken bir hata oluştu: $e'));
     }
   }
+
+  
 }

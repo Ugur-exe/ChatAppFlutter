@@ -26,17 +26,7 @@ class _ChatViewState extends State<ChatView> {
   final ScrollController _scrollController = ScrollController();
   bool _showScrollToBottomButton = false;
 
-  @override
-  void initState() {
-    super.initState();
-    final userStatusCubit = BlocProvider.of<ChatCubitCubit>(context);
-    if (widget.chatId != null) {
-      userStatusCubit.getMessage(widget.chatId!);
-      debugPrint(widget.chatId);
-    } else {
-      debugPrint('ChatId Hata Geldi');
-    }
-  }
+  
 
   @override
   void dispose() {
