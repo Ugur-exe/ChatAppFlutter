@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:chatappwithflutter/model/user_model.dart';
+import 'package:chatappwithflutter/ui/main/view/main_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meta/meta.dart';
@@ -36,19 +37,33 @@ class MainCubit extends Cubit<MainState> {
     });
   }
 
-  // Filtreleme işlemi
-  void filterUsers(String filter) {
+  void filterUsers(FilterType filter) {
     if (state is MainLoaded) {
       final List<UserModel> userList = (state as MainLoaded).users;
 
-      if (filter == 'All') {
+      if (filter == FilterType.all) {
         emit(MainLoaded(users: userList));
-      } else if (filter == 'Unread') {
+      } else if (filter == FilterType.unread) {
         final List<UserModel> unreadUsers = userList.where((user) {
-          return true;
+          // Burada kullanıcıları "unread" kriterine göre filtreleyebilirsin.
+          return true; // Örnek olarak tüm kullanıcıları döndürür, burada kendi şartını ekle.
         }).toList();
 
         emit(MainLoaded(users: unreadUsers));
+      } else if (filter == FilterType.read) {
+        final List<UserModel> readUsers = userList.where((user) {
+          // Burada kullanıcıları "read" kriterine göre filtreleyebilirsin.
+          return true; // Örnek olarak tüm kullanıcıları döndürür, burada kendi şartını ekle.
+        }).toList();
+
+        emit(MainLoaded(users: readUsers));
+      } else if (filter == FilterType.pinned) {
+        final List<UserModel> pinnedUsers = userList.where((user) {
+          // Burada kullanıcıları "pinned" kriterine göre filtreleyebilirsin.
+          return true; // Örnek olarak tüm kullanıcıları döndürür, burada kendi şartını ekle.
+        }).toList();
+
+        emit(MainLoaded(users: pinnedUsers));
       }
     }
   }

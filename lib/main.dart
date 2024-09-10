@@ -2,7 +2,6 @@ import 'package:chatappwithflutter/core/util/router.dart';
 import 'package:chatappwithflutter/firebase_options.dart';
 import 'package:chatappwithflutter/service/firebase/user_status/cubit/user_status_cubit.dart';
 import 'package:chatappwithflutter/ui/chat/cubit/cubit/chat_cubit_cubit.dart';
-import 'package:chatappwithflutter/ui/chat/view/chat_view.dart';
 import 'package:chatappwithflutter/ui/login/cubit/login_cubit.dart';
 import 'package:chatappwithflutter/ui/main/cubit/main_cubit.dart';
 import 'package:firebase_core/firebase_core.dart';

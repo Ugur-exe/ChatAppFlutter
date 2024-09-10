@@ -1,12 +1,18 @@
+import 'package:chatappwithflutter/core/extension/filter_type.dart';
 import 'package:chatappwithflutter/ui/chat/cubit/cubit/chat_cubit_cubit.dart';
 import 'package:chatappwithflutter/ui/main/cubit/main_cubit.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:chatappwithflutter/core/components/custom_row_button.dart';
 import 'package:chatappwithflutter/model/user_model.dart';
 import 'package:chatappwithflutter/ui/chat/view/chat_view.dart';
+
+enum FilterType {
+  all,
+  unread,
+  read,
+  pinned,
+}
 
 class MainView extends StatefulWidget {
   const MainView({super.key});
@@ -69,14 +75,11 @@ class _MainViewState extends State<MainView> {
       child: Row(
         children: [
           CustomSegmentedButton(
-            items: const [
-              'All',
-              'Unread',
-              'Read',
-              'Pined',
-            ],
+            items: FilterType.values.map((filter) => filter.label).toList(),
             onValueChanged: (value) {
-              context.read<MainCubit>().filterUsers(value);
+              final filterType = FilterType.values
+                  .firstWhere((element) => element.label == value);
+              context.read<MainCubit>().filterUsers(filterType);
             },
           ),
         ],

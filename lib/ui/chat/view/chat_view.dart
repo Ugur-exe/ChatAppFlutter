@@ -163,7 +163,7 @@ class _ChatViewState extends State<ChatView> {
                     curve: Curves.easeInOut,
                   );
                 },
-                icon: Icon(Icons.arrow_downward_outlined),
+                icon: const Icon(Icons.arrow_downward_outlined),
               ),
             ),
           _buildMessageInput(),
