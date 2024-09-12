@@ -31,10 +31,10 @@ class _MainViewState extends State<MainView> {
             return Column(
               children: [
                 const SizedBox(height: 10),
-                _buildRowIcon(),
-                _buildSegmentedButton(context),
+                const _RowIcon(),
+                const _SegmentedButton(),
                 const SizedBox(height: 10),
-                Expanded(child: _listCardWidget(state.users, context)),
+                Expanded(child: _ListCardWidget(userList: state.users)),
               ],
             );
           }
@@ -45,8 +45,13 @@ class _MainViewState extends State<MainView> {
       ),
     );
   }
+}
 
-  Widget _buildRowIcon() {
+class _RowIcon extends StatelessWidget {
+  const _RowIcon();
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Row(
@@ -68,8 +73,13 @@ class _MainViewState extends State<MainView> {
       ),
     );
   }
+}
 
-  Widget _buildSegmentedButton(BuildContext context) {
+class _SegmentedButton extends StatelessWidget {
+  const _SegmentedButton();
+
+  @override
+  Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -86,8 +96,14 @@ class _MainViewState extends State<MainView> {
       ),
     );
   }
+}
 
-  Widget _listCardWidget(List<UserModel> userList, BuildContext context) {
+class _ListCardWidget extends StatelessWidget {
+  const _ListCardWidget({required this.userList});
+  final List<UserModel> userList;
+
+  @override
+  Widget build(BuildContext context) {
     return ListView.builder(
       itemCount: userList.length,
       itemBuilder: (context, index) {
