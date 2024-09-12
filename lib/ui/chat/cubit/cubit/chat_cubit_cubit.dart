@@ -1,10 +1,11 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:chatappwithflutter/model/chat_message_model.dart';
 import 'package:chatappwithflutter/repository/firebase/chats.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:meta/meta.dart';
 
 part 'chat_cubit_state.dart';
 
@@ -19,15 +20,22 @@ class ChatCubitCubit extends Cubit<ChatCubitState> implements Chats {
     currentChatId = createChatId(receiverId);
     getMessage();
   }
+
   String createChatId(String receiverId) {
     final ids = [_currentUserId, receiverId]..sort();
     print('ChatId: ${ids[0]}_${ids[1]}');
     return "${ids[0]}_${ids[1]}";
   }
 
+  late StreamSubscription<QuerySnapshot> _messageSubscription;
+
+  void stopListeningMessages() {
+    _messageSubscription.cancel(); // Dinlemeyi durdurur
+  }
+
   @override
   Future getMessage() async {
-    _firestore
+    _messageSubscription = _firestore
         .collection('chats')
         .doc(currentChatId)
         .collection('messages')
@@ -91,5 +99,30 @@ class ChatCubitCubit extends Cubit<ChatCubitState> implements Chats {
     }
   }
 
-  
+  void sendMessageWithUIUpdates(
+      TextEditingController messageController,
+      ScrollController scrollController,
+      String? receiverId,
+      String? chatId,
+      BuildContext context) {
+    if (messageController.text.isNotEmpty) {
+      final senderId = FirebaseAuth.instance.currentUser?.uid;
+      if (senderId != null && receiverId != null && chatId != null) {
+        sendMessage(
+          senderId,
+          receiverId,
+          chatId,
+          messageController.text,
+        ).then((_) {
+          messageController.clear();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            scrollController.jumpTo(scrollController.position.maxScrollExtent);
+          });
+        }).catchError((error) {
+          print('Mesaj gönderilirken hata oluştu: $error');
+        });
+      }
+    }
+  }
 }
+

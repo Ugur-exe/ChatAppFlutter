@@ -34,46 +34,65 @@ class LoginView extends StatelessWidget {
           }
         },
         child: SingleChildScrollView(
-          child: _bodyWidget(context),
+          child: Column(
+            children: [
+              const SizedBox(height: 100),
+              const _ImageWidget(),
+              const SizedBox(height: 50),
+              const _TextWidget(
+                  text: "Login",
+                  fonsize: 36,
+                  fontWeight: FontWeight.bold,
+                  padding: EdgeInsets.all(5)),
+              const _TextWidget(
+                  text: "To fully use our application, you need to log in:",
+                  fonsize: 20,
+                  fontWeight: FontWeight.normal,
+                  padding: EdgeInsets.only(
+                      left: 60, right: 60, top: 15, bottom: 15)),
+              const SizedBox(height: 50),
+              _TextFieldWidget(controller: email),
+              _TextFieldWidget(controller: password),
+              const Align(
+                alignment: Alignment.topRight,
+                child: _RegisterTextButton(),
+              ),
+              _LoginButton(email: email, password: password)
+            ],
+          ),
         ),
       ),
     );
   }
+}
 
-  Widget _bodyWidget(BuildContext context) {
-    return Column(
-      children: [
-        const SizedBox(height: 100),
-        _imageWidget(),
-        const SizedBox(height: 50),
-        _textWidget("Login", 36, FontWeight.bold, const EdgeInsets.all(5)),
-        _textWidget(
-            "To fully use our application, you need to log in:",
-            20,
-            FontWeight.normal,
-            const EdgeInsets.only(left: 60, right: 60, top: 15, bottom: 15)),
-        const SizedBox(height: 50),
-        _textfieldWidget(email),
-        _textfieldWidget(password),
-        Align(
-          alignment: Alignment.topRight,
-          child: _registerTextButton(context),
-        ),
-        _loginButton(context),
-      ],
-    );
-  }
+class _ImageWidget extends StatelessWidget {
+  const _ImageWidget();
 
-  Widget _imageWidget() {
+  @override
+  Widget build(BuildContext context) {
     return SizedBox(
       width: 190,
       height: 190,
       child: Image.asset("assets/images/meetme.png"),
     );
   }
+}
 
-  Widget _textWidget(String text, double fonsize, FontWeight fontWeight,
-      EdgeInsetsGeometry padding) {
+class _TextWidget extends StatelessWidget {
+  const _TextWidget(
+      {required this.text,
+      required this.fonsize,
+      required this.fontWeight,
+      required this.padding});
+  final String text;
+  final double fonsize;
+  final FontWeight fontWeight;
+
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: padding,
       child: Text(
@@ -86,12 +105,17 @@ class LoginView extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _textfieldWidget(TextEditingController controlller) {
+class _TextFieldWidget extends StatelessWidget {
+  const _TextFieldWidget({required this.controller});
+  final TextEditingController controller;
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: TextField(
-        controller: controlller,
+        controller: controller,
         style: const TextStyle(
             color: AppColors.textColor,
             fontWeight: FontWeight.bold,
@@ -118,8 +142,13 @@ class LoginView extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _registerTextButton(context) {
+class _RegisterTextButton extends StatelessWidget {
+  const _RegisterTextButton();
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(right: 3),
       child: TextButton(
@@ -140,14 +169,22 @@ class LoginView extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _loginButton(BuildContext context) {
+class _LoginButton extends StatelessWidget {
+  const _LoginButton({required this.email, required this.password});
+  final TextEditingController email;
+  final TextEditingController password;
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(right: 10, left: 10),
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
           onPressed: () async {
+            print("Email : $email  , Passwrod: $password");
             context.read<LoginCubit>().login(email.text, password.text);
           },
           child: const Text(

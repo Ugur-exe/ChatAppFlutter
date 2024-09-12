@@ -3,8 +3,9 @@ import 'package:chatappwithflutter/ui/chat/cubit/cubit/chat_cubit_cubit.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
-class ChatView extends StatefulWidget {
+class ChatView extends HookWidget {
   const ChatView({
     super.key,
     this.fullName,
@@ -18,28 +19,31 @@ class ChatView extends StatefulWidget {
   final String? receiverId;
 
   @override
-  State<ChatView> createState() => _ChatViewState();
-}
-
-class _ChatViewState extends State<ChatView> {
-  final TextEditingController _messageController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-  bool _showScrollToBottomButton = false;
-
-  
-
-  @override
-  void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final _messageController = useTextEditingController();
+    final _scrollController = useScrollController();
+    final _showScrollToBottomButton =
+        useState(false); // Hook ile state yönetimi
+
     final userStatusCubit = BlocProvider.of<UserStatusCubit>(context);
-    userStatusCubit.readStatusInfo(widget.receiverId!);
+    userStatusCubit.readStatusInfo(receiverId!);
     String _status = '';
+    useEffect(() {
+      final chatCubit = BlocProvider.of<ChatCubitCubit>(context);
+      void listener() {
+        final maxScrollExtent = _scrollController.position.maxScrollExtent;
+        final currentScrollPosition = _scrollController.offset;
+        _showScrollToBottomButton.value =
+            currentScrollPosition < maxScrollExtent - 10;
+      }
+
+      _scrollController.addListener(listener);
+      return () {
+        print('Dİnleyiciler Kapatıldı');
+        _scrollController.removeListener(listener);
+        chatCubit.stopListeningMessages();
+      };
+    }, [_scrollController]);
 
     return Scaffold(
       appBar: AppBar(
@@ -57,7 +61,7 @@ class _ChatViewState extends State<ChatView> {
                     child: Icon(Icons.person_2_outlined),
                   ),
                   title: Text(
-                    widget.fullName ?? "Empty",
+                    fullName ?? "Empty",
                     style: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.bold),
                   ),
@@ -88,71 +92,57 @@ class _ChatViewState extends State<ChatView> {
       body: Column(
         children: [
           Expanded(
-            child: NotificationListener<ScrollNotification>(
-              onNotification: (notification) {
-                if (notification is ScrollEndNotification) {
-                  final maxScrollExtent =
-                      _scrollController.position.maxScrollExtent;
-                  final currentScrollPosition = _scrollController.offset;
-                  setState(() {
-                    _showScrollToBottomButton =
-                        currentScrollPosition < maxScrollExtent - 10;
+            child: BlocConsumer<ChatCubitCubit, ChatCubitState>(
+              listener: (context, state) {
+                if (state is ChatLoadedMessage) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _scrollController
+                        .jumpTo(_scrollController.position.maxScrollExtent);
                   });
                 }
-                return true;
               },
-              child: BlocConsumer<ChatCubitCubit, ChatCubitState>(
-                listener: (context, state) {
-                  if (state is ChatLoadedMessage) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      _scrollController
-                          .jumpTo(_scrollController.position.maxScrollExtent);
-                    });
-                  }
-                },
-                builder: (context, state) {
-                  if (state is ChatCubitInitial) {
-                    return const Center(
-                        child: CircularProgressIndicator.adaptive());
-                  } else if (state is ChatLoadedMessage) {
-                    return ListView.builder(
-                      controller: _scrollController,
-                      itemCount: state.loadMessage.length,
-                      itemBuilder: (context, index) {
-                        final message = state.loadMessage[index];
-                        bool isCurrentUser = message.senderId ==
-                            FirebaseAuth.instance.currentUser!.uid;
-                        return Align(
-                          alignment: isCurrentUser
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 8),
-                            margin: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: isCurrentUser
-                                  ? Colors.blue[100]
-                                  : Colors.grey[300],
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(message.messageText),
+              builder: (context, state) {
+                if (state is ChatCubitInitial) {
+                  return const Center(
+                      child: CircularProgressIndicator.adaptive());
+                } else if (state is ChatLoadedMessage) {
+                  return ListView.builder(
+                    controller: _scrollController,
+                    itemCount: state.loadMessage.length,
+                    itemBuilder: (context, index) {
+                      final message = state.loadMessage[index];
+                      bool isCurrentUser = message.senderId ==
+                          FirebaseAuth.instance.currentUser!.uid;
+                      return Align(
+                        alignment: isCurrentUser
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 8),
+                          margin: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isCurrentUser
+                                ? Colors.blue[100]
+                                : Colors.grey[300],
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        );
-                      },
-                    );
-                  } else if (state is ChatLoadedMessageError) {
-                    return Center(
-                      child: Text('Hata Oluştu: ${state.errorMessage}'),
-                    );
-                  } else {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                },
-              ),
+                          child: Text(message.messageText),
+                        ),
+                      );
+                    },
+                  );
+                } else if (state is ChatLoadedMessageError) {
+                  return Center(
+                    child: Text('Hata Oluştu: ${state.errorMessage}'),
+                  );
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
+              },
             ),
           ),
-          if (_showScrollToBottomButton)
+          if (_showScrollToBottomButton.value)
             Align(
               alignment: Alignment.bottomRight,
               child: IconButton(
@@ -166,20 +156,36 @@ class _ChatViewState extends State<ChatView> {
                 icon: const Icon(Icons.arrow_downward_outlined),
               ),
             ),
-          _buildMessageInput(),
+          _MessageInput(
+              messageController: _messageController,
+              scrollController: _scrollController,
+              receiverId: receiverId!,
+              chatId: chatId!)
         ],
       ),
     );
   }
+}
 
-  Widget _buildMessageInput() {
+class _MessageInput extends StatelessWidget {
+  const _MessageInput(
+      {required this.messageController,
+      required this.scrollController,
+      required this.receiverId,
+      required this.chatId});
+  final TextEditingController messageController;
+  final ScrollController scrollController;
+  final String receiverId;
+  final String chatId;
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       child: Row(
         children: [
           Expanded(
             child: TextField(
-              controller: _messageController,
+              controller: messageController,
               decoration: InputDecoration(
                 hintText: "Mesaj yazın...",
                 border: OutlineInputBorder(
@@ -192,41 +198,18 @@ class _ChatViewState extends State<ChatView> {
             icon: const Icon(Icons.send),
             color: Colors.blue,
             onPressed: () {
-              if (_messageController.text.isNotEmpty) {
-                _sendMessage();
+              if (messageController.text.isNotEmpty) {
+                context.read<ChatCubitCubit>().sendMessageWithUIUpdates(
+                    messageController,
+                    scrollController,
+                    receiverId,
+                    chatId,
+                    context);
               }
             },
           ),
         ],
       ),
     );
-  }
-
-  void _sendMessage() {
-    if (_messageController.text.isNotEmpty) {
-      final senderId = FirebaseAuth.instance.currentUser?.uid;
-      if (senderId != null &&
-          widget.receiverId != null &&
-          widget.chatId != null) {
-        BlocProvider.of<ChatCubitCubit>(context)
-            .sendMessage(
-          senderId,
-          widget.receiverId!,
-          widget.chatId!,
-          _messageController.text,
-        )
-            .then((_) {
-          // Mesaj gönderildikten sonra mesaj alanını temizle
-          _messageController.clear();
-          // Mesaj gönderildikten sonra en alta kaydır
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _scrollController
-                .jumpTo(_scrollController.position.maxScrollExtent);
-          });
-        }).catchError((error) {
-          print('Mesaj gönderilirken hata oluştu: $error');
-        });
-      }
-    }
   }
 }
